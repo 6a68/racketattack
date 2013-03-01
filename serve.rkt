@@ -8,13 +8,18 @@
   (define (loop)
     (accept-and-handle listener)
     (loop))
-  (loop))
+  (define t (thread loop))
+  (lambda ()
+    (kill-thread t)
+    (tcp-close listener)))
 
 (define (accept-and-handle listener)
   (define-values (in out) (tcp-accept listener))
-  (handle in out)
-  (close-input-port in)
-  (close-output-port out))
+  (thread
+    (lambda ()
+      (handle in out)
+      (close-input-port in)
+      (close-output-port out))))
 
 (define (handle in out)
   ; discard request header up to blank line
