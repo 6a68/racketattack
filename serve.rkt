@@ -1,5 +1,7 @@
 #lang racket
 
+; working through http://docs.racket-lang.org/more/index.html
+
 (require xml net/url)
 
 (define (go)
