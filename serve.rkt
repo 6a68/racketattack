@@ -1,5 +1,7 @@
 #lang racket
 
+(require xml net/url)
+
 (define (go)
   'yep-it-works)
 
@@ -29,9 +31,16 @@
             (custodian-shutdown-all cust))))
 
 (define (handle in out)
-  ; discard request header up to blank line
-  (regexp-match #rx"(\r\n|^)\r\n" in)
-  ; send reply
-  (display "HTTP/1.0 200 Okay\r\n" out)
-  (display "Server: k\r\nContent-Type: text/html\r\n\r\n" out)
-  (display "<!doctype html><p>Hello, world!" out))
+  (define req
+    ; Match the first line to get the request
+    (regexp-match #rx"^GET (.+) HTTP/[0-9]+\\.[0-9]+"
+                  (read-line in)))
+  (when req
+    ; discard rest of the header up to blank line
+    (regexp-match #rx"(\r\n|^)\r\n" in)
+    ; dispatch/routing
+    (let ([xexpr (dispatch (list-ref req 1))])
+      ; send reply
+      (display "HTTP/1.1 200 OK\r\n" out)
+      (display "Server: k\r\nContent-Type: text/html\r\n\r\n" out)
+      (display (xexpr->string xexpr) out))))
